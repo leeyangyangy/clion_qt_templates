@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>down-arrow.png</file>
+        <file>leftArrow.png</file>
+        <file>rightArrow.png</file>
+        <file>upArrow.png</file>
+    </qresource>
+</RCC>
