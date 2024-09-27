@@ -17,7 +17,7 @@ QT：5.12.9
 ### 2.1 `Windows` 系统环境变量里面 `path`变量配置 `QT Creator` 安装路径下的其中一个编译器路径(clion编译完程序后，运行时需要)
 
 ```bash
-D:\devtools\Qt\Qt5.12.9\Tools\mingw730_64\bin
+D:\devtools\Qt\Tools\mingw730_64\bin	# D:\devtools\Qt\Qt5.12.9\Tools\mingw730_64\bin
 ```
 
 ### 2.2 配置编译器
@@ -27,9 +27,9 @@ D:\devtools\Qt\Qt5.12.9\Tools\mingw730_64\bin
 ```bash
 # 添加编译器
 name: MinGW_QT
-Toolsets: D:\devtools\Qt\Qt5.12.9\Tools\mingw730_64D:\devtools\Qt\Qt5.12.9\Tools\mingw730_64
+Toolsets: D:\devtools\Qt\Tools\mingw730_64
 Cmake: Bundled
-Debugger: D:\devtools\Qt\Qt5.12.9\Tools\mingw730_64\bin\gdb.exe
+Debugger: D:\devtools\Qt\Tools\mingw730_64\bin\gdb.exe
 ```
 
 配置Cmake
@@ -48,7 +48,7 @@ name: Qt Designer
 description: qt界面设计
 
 Tool Settings
-	Program: D:\devtools\Qt\Qt5.12.9\5.12.9\mingw73_64\bin\designer.exe
+	Program: D:\devtools\Qt\5.12.9\mingw73_64\bin\designer.exe
 	Arguments: $FileName$
 	Working directory: $FileDir$
 ```
@@ -60,7 +60,7 @@ name: UIC
 description: UI文件
 
 Tool Settings
-	Program: D:\devtools\Qt\Qt5.12.9\5.12.9\mingw73_64\bin\uic.exe
+	Program: D:\devtools\Qt\5.12.9\mingw73_64\bin\uic.exe
 	Arguments: $FileName$ -o ui_$FileNameWithoutExtension$.h 
 	Working directory: $FileDir$
 ```
@@ -124,7 +124,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 # 设置 Qt 安装路径
-set(CMAKE_PREFIX_PATH "D:/devtools/Qt/Qt5.12.9/5.12.9/mingw73_64/lib/cmake")
+set(CMAKE_PREFIX_PATH "D:/devtools/Qt/5.12.9/mingw73_64/lib/cmake")
 
 # 查找 Qt5 组件
 find_package(Qt5 COMPONENTS Core Gui Widgets Quick LinguistTools REQUIRED NETWORK CONCURRENT)
@@ -273,5 +273,249 @@ QCheckBox{
 <qresource>
 	<file>qss/test.txt</file>
 <qresource>
+```
+
+
+
+### 3.5 配置MySQL8 数据库驱动
+
+#### 3.5.1 拷贝MySQL8 lib、dll 库文件
+
+找到自己安装路径，无脑安装的路径  `C:\Program Files\MySQL\MySQL Server 8.0\lib` ，解压的看自己解压位置
+
+拷贝两个文件  `libmysql.dll` 和 `libmysql.lib`   到自己喜欢的位置作为备用 
+
+
+
+#### 3.5.2 编译QT MySQL驱动
+
+尝试了网上的方法还是出现 
+
+
+
+##### 3.5.2.1 尝试1
+
+- 用打开qt的mysql驱动插件目录 `D:\devtools\Qt\5.12.9\Src\qtbase\src\plugins\sqldrivers\mysql`
+
+- 修改 `mysql.pro`文件
+
+  ```cmake
+  TARGET = qsqlmysql
+  
+  HEADERS += $$PWD/qsql_mysql_p.h
+  SOURCES += $$PWD/qsql_mysql.cpp $$PWD/main.cpp
+  
+  # 注释 mysql
+  #QMAKE_USE += mysql
+  
+  OTHER_FILES += mysql.json
+  
+  PLUGIN_CLASS_NAME = QMYSQLDriverPlugin
+  include(../qsqldriverbase.pri)
+  
+  # 该路径是的Mysql的头文件（include）路径
+  INCLUDEPATH +="C:\Program Files\MySQL\MySQL Server 8.0\include"
+  # 这是MySQl的库文件路径
+  LIBS +="C:\Program Files\MySQL\MySQL Server 8.0\lib\libmysql.lib"
+  # 为了方便查找，不妨增加一条语句，该语句用来指明编译后的结果输出的位置
+  DESTDIR = ../mysql/lib/  #  libqsqlmysql.a libqsqlmysqld.a qsqlmysql.dll qsqlmysqld.dll
+  # D:\devtools\Qt\5.12.9\Src\qtbase\src\plugins\sqldrivers\mysql\lib
+  ```
+  
+  
+  
+-  无脑拷贝四个文件到你使用的编译器插件目录下(我的编译器路径在开头 `2.1` 已经有写了 `D:\devtools\Qt\5.12.9\mingw73_64`)
+
+  `D:\devtools\Qt\5.12.9\mingw73_64\plugins\sqldrivers`  拷贝到这里面
+
+- 再拷贝前面提到的 `libmysql.dll` 和 `libmysql.lib`(这两个文件位于你的`MySQL`安装目录)文件到编译器`bin`目录里
+
+  `D:\devtools\Qt\5.12.9\mingw73_64\bin`
+
+- 结果还是提示 `QSqlDatabase: QMYSQL driver not loaded`
+
+- 但是它显示可用？不理解。`QSqlDatabase: available drivers: QSQLITE QMYSQL QMYSQL3 QODBC QODBC3 QPSQL QPSQL7`
+
+
+
+##### 3.5.2.2 尝试2
+
+
+
+- 用打开qt的mysql驱动插件目录 `D:\devtools\Qt\5.12.9\Src\qtbase\src\plugins\sqldrivers\mysql`
+
+- 修改 `mysql.pro`文件
+
+  ```cmake
+  TARGET = qsqlmysql
+  
+  HEADERS += $$PWD/qsql_mysql_p.h
+  SOURCES += $$PWD/qsql_mysql.cpp $$PWD/main.cpp
+  
+  # 注释 mysql
+  #QMAKE_USE += mysql
+  
+  OTHER_FILES += mysql.json
+  
+  PLUGIN_CLASS_NAME = QMYSQLDriverPlugin
+  include(../qsqldriverbase.pri)
+  
+  # 使用 mysql-connector-c++-8.0.32-winx64.zip 官网已经编译好的驱动
+  INCLUDEPATH +="C:\Program Files\MySQL\MySQL Server 8.0\include"
+  #这是MySQl的库文件路径
+  LIBS +="C:\Program Files\MySQL\MySQL Server 8.0\lib\libmysql.lib"
+  #为了方便查找，不妨增加一条语句，该语句用来指明编译后的结果输出的位置
+  DESTDIR = ../mysql/lib/
+  # D:\devtools\Qt\5.12.9\Src\qtbase\src\plugins\sqldrivers\mysql\lib
+  ```
+
+
+
+
+##### 3.5.2.3 尝试3
+
+GitHub项目地址:
+
+[thecodemonkey86/qt_mysql_driver: Typical symptom: QMYSQL driver not loaded. Solution: get pre-built Qt SQL driver plug-in required to establish a connection to MySQL / MariaDB using Qt. Download qsqlmysql.dll binaries built from official Qt source code (github.com)](https://github.com/thecodemonkey86/qt_mysql_driver)
+
+在该项目中搜索符合你QT版本和对应编译器版本的驱动插件下载
+
+所需文件:
+
+https://objects.githubusercontent.com/github-production-repository-file-5c1aeb/208150766/5519852?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20240927%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240927T155456Z&X-Amz-Expires=300&X-Amz-Signature=d65ac7016dfde0e4d64bcd7bc2bf6fb1ec032d1b5774db2f39332e1e6b844ad8&X-Amz-SignedHeaders=host&response-content-disposition=attachment%3Bfilename%3Dqsqlmysql.dll_Qt_SQL_driver_5.12.10_MinGW_7.3_64-Bit.zip&response-content-type=application%2Fx-zip-compressed
+
+解压替换上面编译的文件
+
+
+
+QT Creator的项目此时已经正常了
+
+Clion + Cmake 项目还需要修改 Cmakelists.txt 文件
+
+```cmake
+# 添加 MySQL 驱动库的路径
+set(mysqldriver_plugin "D:/mysqlib/lib")
+link_directories(${mysqldriver_plugin})
+
+# 上面的内容在 add_executable 之前进行添加，下面这个在环境依赖拷贝中添加，完整内容见下，如果有错请指出
+
+	add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${mysqldriver_plugin}/qsqlmysql.dll"
+            "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${mysqldriver_plugin}/qsqlmysqld.dll"
+            "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+
+    # 在 Windows 下复制 libmysql.dll
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${mysqldriver_plugin}/../libmysql.dll"
+            "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+```
+
+
+
+完整 `Cmakelists.txt`
+
+```cmake
+# https://www.jetbrains.com/help/clion/qt-tutorial.html#qt-template
+cmake_minimum_required(VERSION 3.20)
+
+# 项目名称，避免写死
+set(PROJECT_NAME qt_clion_template)
+project(${PROJECT_NAME})
+
+# 设置 C++ 标准和其它QT依赖
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+
+# 设置 Qt 安装路径
+set(CMAKE_PREFIX_PATH "D:/devtools/Qt/5.12.9/mingw73_64/lib/cmake")
+
+# 查找 Qt5 组件
+find_package(Qt5 COMPONENTS Core Gui Widgets Quick LinguistTools Sql REQUIRED NETWORK CONCURRENT)
+
+# 配置 QRC 文件
+# 添加qrc依赖,还需要将QRC文件加入编译文件列表才可以
+set(QRC_SOURCE_FILE resources/res.qrc)
+qt5_add_resources(QT_RESOURCES ${QRC_SOURCE_FILE})
+
+# 添加 MySQL 驱动库的路径
+set(mysqldriver_plugin "D:/mysqlib/lib")
+link_directories(${mysqldriver_plugin})
+
+# 添加可执行文件
+add_executable(${PROJECT_NAME} main.cpp
+        widget.cpp
+        widget.h
+        widget.ui
+        ${QT_RESOURCES}
+)
+
+# 链接 Qt5 库 # 链接 MySQL Connector/C++ 库，名称可能是 `mysqlcppconn` 或 `mysqlcppconn8`
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Concurrent Qt5::Sql qsqlmysql)
+
+# Windows 特定设置
+if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    set(DEBUG_SUFFIX)
+    if (MSVC AND CMAKE_BUILD_TYPE MATCHES "Debug")
+        set(DEBUG_SUFFIX "d")
+    endif()
+
+    set(QT_INSTALL_PATH "${CMAKE_PREFIX_PATH}")
+    if (NOT EXISTS "${QT_INSTALL_PATH}/bin")
+        set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
+        if (NOT EXISTS "${QT_INSTALL_PATH}/bin")
+            set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
+        endif()
+    endif()
+
+    # 创建插件目录并复制平台插件
+    if (EXISTS "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll")
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E make_directory
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy
+                "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
+    endif()
+
+    # 复制所需的 Qt DLL 文件
+    foreach (QT_LIB Core Gui Widgets)
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy
+                "${QT_INSTALL_PATH}/bin/Qt5${QT_LIB}${DEBUG_SUFFIX}.dll"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+    endforeach()
+
+    # 使用 windeployqt 工具自动部署 DLL（可选）
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND "${QT_INSTALL_PATH}/bin/windeployqt.exe"
+            "$<TARGET_FILE:${PROJECT_NAME}>")
+
+    # MYSQL 驱动需要 配置下面内容，不然一定连不上数据库，报错 QMYSQL driver not loaded
+    # Windows 下复制 qsqlmysql.dll 和 qsqlmysqld.dll
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${mysqldriver_plugin}/qsqlmysql.dll"
+            "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${mysqldriver_plugin}/qsqlmysqld.dll"
+            "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+
+    # 在 Windows 下复制 libmysql.dll
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${mysqldriver_plugin}/../libmysql.dll"
+            "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+endif()
 ```
 
