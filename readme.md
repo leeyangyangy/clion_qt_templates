@@ -324,11 +324,11 @@ QCheckBox{
   
   
   
--  无脑拷贝四个文件到你使用的编译器插件目录下(我的编译器路径在开头 `2.1` 已经有写了 `D:\devtools\Qt\5.12.9\mingw73_64`)
+-  无脑拷贝四个文件到你使用的QT mingw插件目录下(我的编译器路径在开头 `2.1` 已经有写了 `D:\devtools\Qt\5.12.9\mingw73_64`)
 
   `D:\devtools\Qt\5.12.9\mingw73_64\plugins\sqldrivers`  拷贝到这里面
 
-- 再拷贝前面提到的 `libmysql.dll` 和 `libmysql.lib`(这两个文件位于你的`MySQL`安装目录)文件到编译器`bin`目录里
+- 再拷贝前面提到的 `libmysql.dll` 和 `libmysql.lib`(这两个文件位于你的`MySQL`安装目录)文件到QT mingw 的`bin`目录里
 
   `D:\devtools\Qt\5.12.9\mingw73_64\bin`
 
