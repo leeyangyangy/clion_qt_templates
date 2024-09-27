@@ -1,0 +1,18 @@
+<RCC>
+    <!-- prefix="/image 以下file中的路径image就相当于是前缀，clion中这么配置即可-->
+    <qresource>
+        <file>image/1.png</file>
+        <file>image/404.png</file>
+    </qresource>
+
+    <!-- prefix="/lang 以下file中的路径lang就相当于是前缀，根据实际修改-->
+    <qresource>
+        <file>lang/test.txt</file>
+    </qresource>
+
+    <!-- prefix="/qss 以下file中的路径lang就相当于是前缀，添加 qresource > file时，请确保实际文件存放在正确位置，如果 qss/test.txt 不存在，编译时会报错-->
+    <!-- file>qss/test.txt</file ninja: error: 'project_name/resources/qss/test.txt', needed by 'qrc_res.cpp', missing and no known rule to make it-->
+    <qresource>
+        <file>qss/style.qss</file>
+    </qresource>
+</RCC>

@@ -14,34 +14,27 @@ set(CMAKE_AUTOUIC ON)
 # 设置 Qt 安装路径
 set(CMAKE_PREFIX_PATH "D:/devtools/Qt/Qt5.12.9/5.12.9/mingw73_64/lib/cmake")
 
-#set(Qt5_DIR "${CMAKE_PREFIX_PATH}/Qt5")
-
-# 配置qrc文件
-# 添加qrc依赖,还需要将QRC文件加入编译文件列表才可以
-set(QRC_SOURCE_FILE res.qrc)
-#qt_add_resources(${QRC_SOURCE_FILE})
-
 # 查找 Qt5 组件
 find_package(Qt5 COMPONENTS Core Gui Widgets Quick LinguistTools REQUIRED NETWORK CONCURRENT)
+
+# 配置 QRC 文件
+# 添加qrc依赖,还需要将QRC文件加入编译文件列表才可以
+set(QRC_SOURCE_FILE resources/res.qrc)
+qt5_add_resources(QT_RESOURCES ${QRC_SOURCE_FILE})
 
 # 添加可执行文件
 add_executable(${PROJECT_NAME} main.cpp
         widget.cpp
         widget.h
         widget.ui
-#        ${QRC_SOURCE_FILE}
+        ${QT_RESOURCES}
 )
-
-# 第一个参数是项目名，第二个参数是 qrc 路径 ，第三个参数是前缀 第四个参数是资源路径，第五、六个参数是qrc文件名
-qt5_add_resources(${PROJECT_NAME} "" PREFIX "/resources" FILES ${QRC_SOURCE_FILE})
 
 # 链接 Qt5 库
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Concurrent)
 
 # Windows 特定设置
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-    # Windows 特定的设置
-    message(STATUS "This is a Windows system.")
     set(DEBUG_SUFFIX)
     if (MSVC AND CMAKE_BUILD_TYPE MATCHES "Debug")
         set(DEBUG_SUFFIX "d")
