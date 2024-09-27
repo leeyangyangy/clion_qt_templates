@@ -12,15 +12,19 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 # 设置 Qt 安装路径
-set(CMAKE_PREFIX_PATH "D:/devtools/Qt/Qt5.12.9/5.12.9/mingw73_64/lib/cmake")
+set(CMAKE_PREFIX_PATH "D:/devtools/Qt/5.12.9/mingw73_64/lib/cmake")
 
 # 查找 Qt5 组件
-find_package(Qt5 COMPONENTS Core Gui Widgets Quick LinguistTools REQUIRED NETWORK CONCURRENT)
+find_package(Qt5 COMPONENTS Core Gui Widgets Quick LinguistTools Sql REQUIRED NETWORK CONCURRENT)
 
 # 配置 QRC 文件
 # 添加qrc依赖,还需要将QRC文件加入编译文件列表才可以
 set(QRC_SOURCE_FILE resources/res.qrc)
 qt5_add_resources(QT_RESOURCES ${QRC_SOURCE_FILE})
+
+# 添加 MySQL 驱动库的路径
+set(mysqldriver_plugin "D:/mysqlib/lib")
+link_directories(${mysqldriver_plugin})
 
 # 添加可执行文件
 add_executable(${PROJECT_NAME} main.cpp
@@ -30,8 +34,8 @@ add_executable(${PROJECT_NAME} main.cpp
         ${QT_RESOURCES}
 )
 
-# 链接 Qt5 库
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Concurrent)
+# 链接 Qt5 库 # 链接 MySQL Connector/C++ 库，名称可能是 `mysqlcppconn` 或 `mysqlcppconn8`
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Concurrent Qt5::Sql qsqlmysql)
 
 # Windows 特定设置
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
@@ -71,4 +75,22 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND "${QT_INSTALL_PATH}/bin/windeployqt.exe"
             "$<TARGET_FILE:${PROJECT_NAME}>")
+
+    # MYSQL 驱动需要 配置下面内容，不然一定连不上数据库，报错 QMYSQL driver not loaded
+    # Windows 下复制 qsqlmysql.dll 和 qsqlmysqld.dll
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${mysqldriver_plugin}/qsqlmysql.dll"
+            "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${mysqldriver_plugin}/qsqlmysqld.dll"
+            "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+
+    # 在 Windows 下复制 libmysql.dll
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${mysqldriver_plugin}/../libmysql.dll"
+            "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
 endif()
