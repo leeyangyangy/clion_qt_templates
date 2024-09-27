@@ -22,9 +22,11 @@ find_package(Qt5 COMPONENTS Core Gui Widgets Quick LinguistTools Sql REQUIRED NE
 set(QRC_SOURCE_FILE resources/res.qrc)
 qt5_add_resources(QT_RESOURCES ${QRC_SOURCE_FILE})
 
-# 添加 MySQL 驱动库的路径
-set(mysqldriver_plugin "D:/mysqlib/lib")
-link_directories(${mysqldriver_plugin})
+#CMAKE_CURRENT_SOURCE_DIR: 表示当前 CMakeLists.txt 文件所在的目录。
+#CMAKE_SOURCE_DIR: 表示项目的根目录，即第一个 CMakeLists.txt 文件所在的目录。
+# 添加 MySQL 驱动库的路径，从项目drivers中获取驱动,避免不知道文件从那获取
+set(mysqldriver_plugin ${CMAKE_SOURCE_DIR}/libs/mysqlib)
+link_directories(${mysqldriver_plugin}/lib)
 
 # 添加可执行文件
 add_executable(${PROJECT_NAME} main.cpp
@@ -80,17 +82,17 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     # Windows 下复制 qsqlmysql.dll 和 qsqlmysqld.dll
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${mysqldriver_plugin}/qsqlmysql.dll"
+            "${mysqldriver_plugin}/lib/qsqlmysql.dll"
             "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
 
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${mysqldriver_plugin}/qsqlmysqld.dll"
+            "${mysqldriver_plugin}/lib/qsqlmysqld.dll"
             "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
 
     # 在 Windows 下复制 libmysql.dll
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${mysqldriver_plugin}/../libmysql.dll"
+            "${mysqldriver_plugin}/libmysql.dll"
             "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
 endif()
