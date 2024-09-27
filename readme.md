@@ -7,14 +7,14 @@ QT：5.12.9
 
 
 
-## 1. 安装 qt creator
+## 1. 安装 QT Creator
 无脑全选，所有gcc、msvc编译器勾上
 
 
 
 
 ## 2. 配置 Clion
-### 2.1 `Windows` 系统环境变量里面 `path`变量配置 `qt creator` 安装路径下的其中一个编译器路径(clion编译完程序后，运行时需要)
+### 2.1 `Windows` 系统环境变量里面 `path`变量配置 `QT Creator` 安装路径下的其中一个编译器路径(clion编译完程序后，运行时需要)
 
 ```bash
 D:\devtools\Qt\Qt5.12.9\Tools\mingw730_64\bin
@@ -107,7 +107,7 @@ Tool Settings
 
 ### 3.2 缺少DLL库
 
-我的 `Win 11` 无法编译 `Clion` 生成的项目，需要修改 `CmakeLists.txt` 文件
+我的 `Win 11` 无法编译 `Clion` 生成的项目，需要修改 `CmakeLists.txt` 文件，详见 `Windows 特定设置` 注释内容
 
 ```cmake
 # https://www.jetbrains.com/help/clion/qt-tutorial.html#qt-template
@@ -127,21 +127,26 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_PREFIX_PATH "D:/devtools/Qt/Qt5.12.9/5.12.9/mingw73_64/lib/cmake")
 
 # 查找 Qt5 组件
-find_package(Qt5 COMPONENTS Core Gui Widgets REQUIRED NETWORK)
+find_package(Qt5 COMPONENTS Core Gui Widgets Quick LinguistTools REQUIRED NETWORK CONCURRENT)
+
+# 配置 QRC 文件
+# 添加qrc依赖,还需要将QRC文件加入编译文件列表才可以
+set(QRC_SOURCE_FILE resources/res.qrc)
+qt5_add_resources(QT_RESOURCES ${QRC_SOURCE_FILE})
 
 # 添加可执行文件
 add_executable(${PROJECT_NAME} main.cpp
         widget.cpp
         widget.h
-        widget.ui)
+        widget.ui
+        ${QT_RESOURCES}
+)
 
 # 链接 Qt5 库
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network)
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Concurrent)
 
 # Windows 特定设置
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-    # Windows 特定的设置
-    message(STATUS "This is a Windows system.")
     set(DEBUG_SUFFIX)
     if (MSVC AND CMAKE_BUILD_TYPE MATCHES "Debug")
         set(DEBUG_SUFFIX "d")
@@ -187,9 +192,21 @@ endif()
 ### 3.4 .qrc 文件添加
 修改CmakeLists.txt
 
+##### qt 5.12.9
+
+```cmake
+set(QRC_SOURCE_FILE resources/res.qrc)
+qt5_add_resources(QT_RESOURCES ${QRC_SOURCE_FILE})
+add_executable(xxx xxx.cpp ${QRC_SOURCE_FILE})
+```
+
+​	
+
+##### qt 5.15+
+
 ```cmake
 # 添加qrc依赖
-set(QRC_SOURCE_FILE res.qrc)
+set(QRC_SOURCE_FILE resources/res.qrc)
 # qt 5.15+版本才有的命令
 qt_add_resources(${QRC_SOURCE_FILE})
 
@@ -200,21 +217,25 @@ add_executable(xxx xxx.cpp ${QRC_SOURCE_FILE})
 #### res.qrc内容如下(请根据实际修改)
 
 prefix就是前缀的虚拟文件夹名，在代码中引用规则为`:虚拟文件夹名/文件路径`
-一定要在CMake中配置qrc文件,需要再find_packages后面
+一定要在CMake中配置qrc文件(上面有添加方法)
 
 ```xml
 <RCC>
-    <qresource prefix="/image">
-        <file>resources/qss/flatgray/1.png</file>
-        <file>resources/qss/flatgray/2.png</file>
-        <file>resources/qss/flatgray/3.png</file>
-
-    </qresource>
-    
-    <qresource prefix="/qss">
-        <file>resources/qss/flatgray.qss</file>
+    <!-- prefix="/image 以下file中的路径image就相当于是前缀，clion中这么配置即可-->
+    <qresource>
+        <file>image/1.png</file>
     </qresource>
 
+    <!-- prefix="/lang 以下file中的路径lang就相当于是前缀，根据实际修改-->
+    <qresource>
+        <file>lang/test.txt</file>
+    </qresource>
+
+    <!-- prefix="/qss 以下file中的路径lang就相当于是前缀，添加 qresource > file时，请确保实际文件存放在正确位置，如果 qss/test.txt 不存在，编译时会报错-->
+    <!-- file>qss/test.txt</file ninja: error: 'project_name/resources/qss/test.txt', needed by 'qrc_res.cpp', missing and no known rule to make it-->
+    <qresource>
+        <file>qss/style.qss</file>
+    </qresource>
 </RCC>
 ```
 
@@ -236,6 +257,21 @@ QCheckBox{
 }
 ```
 
-!!! 引用之前一定要在qrc文件中写清楚文件所在位置
+!!! 引用之前一定要在qrc文件中写清楚文件所在位置，下面有文件报错异常
 
-#### 待追加
+#### 
+
+#### qrc中的文件不存在，编译时报错 ninja:……
+
+```bash
+ ninja: error: 'project_name/resources/qss/test.txt', needed by 'qrc_res.cpp', missing and no known rule to make it-->
+```
+
+说明 `resources/qss/test.txt`不存在，自行确认文件情况
+
+```xml
+<qresource>
+	<file>qss/test.txt</file>
+<qresource>
+```
+
