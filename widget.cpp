@@ -5,43 +5,39 @@
 // You may need to build the project (run Qt uic code generator) to get "ui_Widget.h" resolved
 #include "widget.h"
 #include "ui_Widget.h"
+#include <QSqlDatabase>
+#include  <QSqlQuery>
+#include <QSqlError>
 
 Widget::Widget(QWidget* parent) :
     QWidget(parent), ui(new Ui::Widget)
 {
     ui->setupUi(this);
-    setWindowTitle("--Clion QT5.12.9 Template-- 测试版  V1.0 24-0905     制作：LEEYANGY");
+    setWindowTitle("--Clion QT5.12.9 Template-- 测试版  V1.0 24-0928     制作：LEEYANGY");
 
-    // 测试文件是否能被正确读取
-    QFile file = QFile(":/lang/test.txt");
+    QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
+    db.setHostName("127.0.0.1");
+    db.setUserName("root");
+    db.setPassword("root");
+    db.setPort(3306);
+    db.setDatabaseName("test");
 
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    if (!db.open())
     {
-        qDebug() << "Failed to open file";
-    }
-    else
+        QMessageBox::warning(this, "fail", db.lastError().text());
+        qDebug() << "Failed to connect to database";
+        return;
+    } else
     {
-        qDebug() << "File opened successfully";
-        const QString text = file.readAll();
-        qDebug() << text;
-        file.close();
+        qDebug() << "Connected to database";
     }
-
-
-    QPixmap pixmap(":/image/404.png");
-    if (pixmap.isNull())
+    QSqlQuery query;
+    query.exec("select * from user");
+    while (query.next())
     {
-        qDebug() << "Image not found!";
+        qDebug() << query.value("name").toString();
     }
-    else
-    {
-        qDebug() << "Image loaded successfully!";
-        ui->picture->setPixmap(pixmap);
-    }
-
-    ui->picture->setPixmap(QPixmap(":/image/404.png"));
-
-
+    db.close();
 }
 
 Widget::~Widget()
